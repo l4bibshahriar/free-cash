@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuizCash — Answer & Earn</title>
+<style>
+  :root{
+    --black:#0b0f0c;
+    --black-2:#11160f;
+    --green:#1fae5e;
+    --green-bright:#34e07a;
+    --yellow:#f4d535;
+    --card:#151b14;
+    --text:#eef2ea;
+    --muted:#9bab9a;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% -10%, rgba(52,224,122,0.18), transparent 45%),
+      radial-gradient(circle at 90% 0%, rgba(244,213,53,0.12), transparent 40%),
+      var(--black);
+    color:var(--text);
+    font-family:'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative;}
+
+  /* ---------- AUTH ---------- */
+  .auth-screen{flex:1;display:flex;flex-direction:column;justify-content:center;padding:32px 24px;animation:fadeUp .6s ease both;}
+  .brand{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:28px;}
+  .brand .logo{
+    width:42px;height:42px;border-radius:12px;
+    background:linear-gradient(135deg,var(--green-bright),var(--yellow));
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;color:#0b0f0c;font-size:18px;
+    box-shadow:0 0 24px rgba(52,224,122,.45);
+  }
+  .brand .name{font-size:22px;font-weight:800;letter-spacing:.5px;}
+  .brand .name span{color:var(--yellow);}
+
+  .auth-card{
+    background:var(--card);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:var(--radius);
+    padding:26px 22px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .auth-card h1{font-size:20px;margin:0 0 6px;}
+  .auth-card p.sub{color:var(--muted);font-size:13px;margin:0 0 20px;}
+  .field{margin-bottom:14px;}
+  .field label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px;}
+  .field input{
+    width:100%;padding:13px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);
+    background:#0e130d;color:var(--text);font-size:15px;outline:none;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  .field input:focus{border-color:var(--green-bright);box-shadow:0 0 0 3px rgba(52,224,122,.15);}
+  .btn{
+    width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:700;
+    cursor:pointer;transition:transform .15s ease, box-shadow .2s ease;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primary{
+    background:linear-gradient(135deg,var(--green-bright),var(--green));
+    color:#06140a;
+    box-shadow:0 10px 24px rgba(31,174,94,.35);
+  }
+  .btn-primary:hover{box-shadow:0 12px 30px rgba(52,224,122,.5);}
+  .toggle-row{text-align:center;margin-top:16px;font-size:13px;color:var(--muted);}
+  .toggle-row a{color:var(--yellow);text-decoration:none;font-weight:600;cursor:pointer;}
+  .error-msg{color:#ff6b6b;font-size:12px;margin:-6px 0 12px;min-height:14px;}
+  .bonus-tag{
+    display:inline-block;margin-top:14px;font-size:11px;color:var(--black);
+    background:var(--yellow);padding:4px 10px;border-radius:999px;font-weight:700;
+  }
+
+  /* ---------- DASHBOARD ---------- */
+  .screen{display:none;flex-direction:column;min-height:100vh;animation:fadeUp .5s ease both;}
+  .screen.active{display:flex;}
+
+  header.topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 20px 14px;
+    position:sticky;top:0;z-index:5;
+    background:linear-gradient(180deg, rgba(11,15,12,.95), rgba(11,15,12,.85));
+    backdrop-filter:blur(6px);
+  }
+  .user-id{display:flex;align-items:center;gap:10px;}
+  .user-id .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--green-bright),var(--yellow));display:flex;align-items:center;justify-content:center;color:#0b0f0c;font-weight:800;font-size:14px;}
+  .user-id .uname{font-weight:700;font-size:14px;}
+  .user-id .uphone{font-size:11px;color:var(--muted);}
+  .logout-btn{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;}
+
+  .balance-bar{
+    margin:0 20px 18px;
+    background:linear-gradient(135deg, var(--card), #10160f);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;padding:18px 20px;
+    display:flex;align-items:center;justify-content:space-between;
+    position:relative;overflow:hidden;
+  }
+  .balance-bar::after{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(circle at 100% 0%, rgba(244,213,53,.12), transparent 60%);
+  }
+  .balance-bar .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+  .balance-bar .amount{font-size:28px;font-weight:800;color:var(--green-bright);margin-top:2px;}
+  .balance-bar .amount span{font-size:15px;color:var(--yellow);margin-left:3px;}
+  .cashout-btn{
+    background:linear-gradient(135deg,var(--yellow), #e0b800);
+    color:#1b1500;border:none;padding:11px 18px;border-radius:12px;font-weight:800;
+    font-size:13px;cursor:pointer;box-shadow:0 8px 18px rgba(244,213,53,.3);
+    z-index:1;transition:transform .15s;
+  }
+  .cashout-btn:active{transform:scale(.95);}
+
+  .section-title{padding:0 20px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
+
+  .quiz-rail{
+    display:flex;gap:14px;overflow-x:auto;padding:0 20px 24px;
+    scroll-snap-type:x mandatory;
+  }
+  .quiz-rail::-webkit-scrollbar{display:none;}
+  .quiz-card{
+    flex:0 0 78%;scroll-snap-align:start;
+    background:var(--card);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;padding:20px;
+    position:relative;overflow:hidden;
+    transition:transform .2s ease;
+  }
+  .quiz-card:active{transform:scale(.97);}
+  .quiz-card .qnum{
+    font-size:11px;font-weight:800;color:var(--black);background:var(--green-bright);
+    display:inline-block;padding:4px 10px;border-radius:999px;margin-bottom:14px;
+  }
+  .quiz-card.done .qnum{background:var(--yellow);}
+  .quiz-card h3{margin:0 0 6px;font-size:17px;}
+  .quiz-card p{margin:0 0 16px;color:var(--muted);font-size:12px;}
+  .quiz-card .reward{font-size:13px;color:var(--green-bright);font-weight:700;}
+  .quiz-card .start-pill{
+    margin-top:14px;display:inline-flex;align-items:center;gap:6px;
+    color:var(--black);background:linear-gradient(135deg,var(--green-bright),var(--yellow));
+    padding:9px 16px;border-radius:10px;font-weight:700;font-size:13px;
+  }
+  .quiz-card.done{opacity:.6;}
+  .quiz-card.done .start-pill{background:#2a322a;color:var(--muted);}
+  .quiz-card .glow{
+    position:absolute;width:140px;height:140px;border-radius:50%;
+    background:rgba(52,224,122,.18);filter:blur(40px);top:-50px;right:-40px;
+  }
+
+  .history-box{margin:0 20px 30px;background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:6px 16px;}
+  .history-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;}
+  .history-row:last-child{border-bottom:none;}
+  .history-row .h-plus{color:var(--green-bright);font-weight:700;}
+  .empty-hint{color:var(--muted);font-size:12px;padding:14px 0;text-align:center;}
+
+  /* ---------- QUIZ PLAY ---------- */
+  .quiz-play{padding:20px;flex:1;display:flex;flex-direction:column;}
+  .quiz-progress{display:flex;gap:6px;margin-bottom:22px;}
+  .quiz-progress .seg{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;}
+  .quiz-progress .seg.fill{background:linear-gradient(90deg,var(--green-bright),var(--yellow));}
+  .back-link{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;margin-bottom:14px;align-self:flex-start;}
+  .question-box{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:24px 20px;margin-bottom:20px;animation:fadeUp .35s ease both;}
+  .qcount{font-size:11px;color:var(--yellow);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+  .question-box h2{font-size:19px;margin:0 0 4px;line-height:1.4;}
+  .options{display:flex;flex-direction:column;gap:12px;}
+  .option-btn{
+    text-align:left;padding:15px 16px;border-radius:13px;border:1px solid rgba(255,255,255,.08);
+    background:#0e130d;color:var(--text);font-size:14px;cursor:pointer;
+    display:flex;align-items:center;gap:12px;transition:all .15s ease;
+  }
+  .option-btn .opt-letter{
+    width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.06);
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--muted);
+    flex-shrink:0;
+  }
+  .option-btn:active{transform:scale(.98);}
+  .option-btn.correct{border-color:var(--green-bright);background:rgba(52,224,122,.12);}
+  .option-btn.correct .opt-letter{background:var(--green-bright);color:#06140a;}
+  .option-btn.wrong{border-color:#ff6b6b;background:rgba(255,107,107,.1);}
+  .option-btn.wrong .opt-letter{background:#ff6b6b;color:#1a0606;}
+  .option-btn.disabled{pointer-events:none;}
+
+  .result-box{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;animation:fadeUp .4s ease both;}
+  .result-box .emoji{font-size:54px;margin-bottom:10px;}
+  .result-box h2{margin:0 0 6px;font-size:22px;}
+  .result-box p{color:var(--muted);font-size:14px;margin:0 0 22px;}
+  .result-box .earned{font-size:32px;font-weight:800;color:var(--green-bright);margin-bottom:24px;}
+  .result-box .earned span{color:var(--yellow);}
+
+  /* ---------- MODAL ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);
+    display:none;align-items:flex-end;justify-content:center;z-index:50;
+  }
+  .modal-overlay.active{display:flex;}
+  .modal-sheet{
+    width:100%;max-width:480px;background:var(--card);border-radius:22px 22px 0 0;
+    padding:26px 22px 30px;animation:slideUp .3s ease both;
+    border-top:1px solid rgba(255,255,255,.08);
+  }
+  .modal-sheet h3{margin:0 0 4px;font-size:18px;}
+  .modal-sheet p.sub{color:var(--muted);font-size:13px;margin:0 0 18px;}
+  .modal-sheet .close-x{float:right;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;}
+  .success-tick{
+    width:60px;height:60px;border-radius:50%;background:rgba(52,224,122,.15);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;color:var(--green-bright);
+  }
+  .center-text{text-align:center;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- AUTH SCREEN -->
+  <div class="auth-screen" id="authScreen">
+    <div class="brand">
+      <div class="logo">Q</div>
+      <div class="name">Quiz<span>Cash</span></div>
+    </div>
+
+    <div class="auth-card">
+      <h1 id="authTitle">Welcome back</h1>
+      <p class="sub" id="authSub">Log in with your phone number to keep earning.</p>
+
+      <div class="field" id="nameField" style="display:none;">
+        <label>Your Name</label>
+        <input type="text" id="nameInput" placeholder="e.g. Rakib Hasan">
+      </div>
+      <div class="field">
+        <label>Phone Number</label>
+        <input type="tel" id="phoneInput" placeholder="01XXXXXXXXX">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="passInput" placeholder="••••••••">
+      </div>
+      <div class="error-msg" id="authError"></div>
+      <button class="btn btn-primary" id="authSubmit">Log In</button>
+
+      <div class="toggle-row" id="toggleRow">
+        New here? <a id="toggleLink">Create an account</a>
+      </div>
+      <div class="center-text" id="bonusNote" style="display:none;">
+        <span class="bonus-tag">🎁 Get ৳100 signup bonus instantly</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD SCREEN -->
+  <div class="screen" id="dashScreen">
+    <header class="topbar">
+      <div class="user-id">
+        <div class="logo">Q</div>
+        <div>
+          <div class="uname" id="dashName">Player</div>
+          <div class="uphone" id="dashPhone">01XXXXXXXXX</div>
+        </div>
+      </div>
+      <button class="logout-btn" id="logoutBtn">Log out</button>
+    </header>
+
+    <div class="balance-bar">
+      <div>
+        <div class="label">Your balance</div>
+        <div class="amount" id="balanceAmt">৳0<span>BDT</span></div>
+      </div>
+      <button class="cashout-btn" id="cashoutBtn">Cash Out</button>
+    </div>
+
+    <div class="section-title">Play & earn</div>
+    <div class="quiz-rail" id="quizRail"></div>
+
+    <div class="section-title">Recent activity</div>
+    <div class="history-box" id="historyBox">
+      <div class="empty-hint">No activity yet — finish a quiz to see it here.</div>
+    </div>
+  </div>
+
+  <!-- QUIZ PLAY SCREEN -->
+  <div class="screen" id="playScreen">
+    <div class="quiz-play">
+      <button class="back-link" id="backFromPlay">&larr; Back to quizzes</button>
+      <div class="quiz-progress" id="quizProgress"></div>
+      <div id="playArea"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CASHOUT MODAL -->
+<div class="modal-overlay" id="cashoutModal">
+  <div class="modal-sheet">
+    <button class="close-x" id="closeCashout">✕</button>
+    <h3>Cash Out</h3>
+    <p class="sub">Enter your details — we'll send funds to this number.</p>
+    <div class="field">
+      <label>Mobile Number</label>
+      <input type="tel" id="cashNumber" placeholder="01XXXXXXXXX">
+    </div>
+    <div class="field">
+      <label>Method</label>
+      <input type="text" id="cashMethod" placeholder="bKash / Nagad / Rocket">
+    </div>
+    <div class="error-msg" id="cashError"></div>
+    <button class="btn btn-primary" id="submitCashout">Request Cashout</button>
+  </div>
+</div>
+
+<!-- DONE MODAL -->
+<div class="modal-overlay" id="doneModal">
+  <div class="modal-sheet center-text">
+    <div class="success-tick">✓</div>
+    <h3>DONE</h3>
+    <p class="sub" id="doneText">Your cashout request has been received.</p>
+    <button class="btn btn-primary" id="closeDone">Back to dashboard</button>
+  </div>
+</div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const QUESTION_BANK = [
+  {q:"What is the capital of Bangladesh?", opts:["Cumilla","Dhaka","Chittagong","Noakhali"], a:1},
+  {q:"Which river flows through Dhaka?", opts:["Padma","Meghna","Buriganga","Jamuna"], a:2},
+  {q:"What is the national fruit of Bangladesh?", opts:["Mango","Jackfruit","Banana","Lychee"], a:1},
+  {q:"What is the currency of Bangladesh?", opts:["Rupee","Dollar","Taka","Dinar"], a:2},
+  {q:"Which sea is south of Bangladesh?", opts:["Arabian Sea","Bay of Bengal","Red Sea","Caspian Sea"], a:1},
+  {q:"How many provinces (divisions) does Bangladesh have?", opts:["6","7","8","9"], a:2},
+  {q:"What is the national sport of Bangladesh?", opts:["Cricket","Kabaddi","Football","Hockey"], a:1},
+  {q:"Which year did Bangladesh gain independence?", opts:["1947","1965","1971","1975"], a:2},
+  {q:"What is the largest city in Bangladesh by population?", opts:["Khulna","Rajshahi","Dhaka","Sylhet"], a:2},
+  {q:"What language is mainly spoken in Bangladesh?", opts:["Hindi","Urdu","Bengali","English"], a:2},
+  {q:"2 + 2 x 2 equals?", opts:["6","8","4","2"], a:0},
+  {q:"What is the largest planet in our solar system?", opts:["Earth","Mars","Jupiter","Saturn"], a:2},
+  {q:"How many days are there in a leap year?", opts:["364","365","366","367"], a:2},
+  {q:"What is the freezing point of water in Celsius?", opts:["0°C","32°C","100°C","-10°C"], a:0},
+  {q:"Which animal is known as the King of the Jungle?", opts:["Tiger","Lion","Elephant","Bear"], a:1},
+  {q:"How many continents are there?", opts:["5","6","7","8"], a:2},
+  {q:"What gas do humans need to breathe to survive?", opts:["Carbon Dioxide","Oxygen","Nitrogen","Hydrogen"], a:1},
+  {q:"What is the smallest prime number?", opts:["0","1","2","3"], a:2},
+  {q:"Which ocean is the largest?", opts:["Atlantic","Indian","Arctic","Pacific"], a:3},
+  {q:"How many sides does a hexagon have?", opts:["5","6","7","8"], a:1},
+];
+
+const QUIZ_COUNT = 3;
+const QUESTIONS_PER_QUIZ = 5;
+const REWARD_PER_QUIZ = 30;
+const SIGNUP_BONUS = 10;
+
+let currentUser = null;
+let activeQuizIndex = null;
+let activeQuestions = [];
+let activeIdx = 0;
+let activeScore = 0;
+
+/* ---------------- STORAGE HELPERS ---------------- */
+const usersKey = "quizcash_users";
+function getUsers(){ return JSON.parse(localStorage.getItem(usersKey) || "{}"); }
+function saveUsers(u){ localStorage.setItem(usersKey, JSON.stringify(u)); }
+
+function shuffle(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function pickQuestionsForQuiz(quizIndex){
+  // deterministic-ish but randomized per session: just shuffle full bank, slice
+  const shuffled = shuffle(QUESTION_BANK);
+  return shuffled.slice(0, QUESTIONS_PER_QUIZ);
+}
+
+/* ---------------- AUTH UI ---------------- */
+let mode = "login"; // or "signup"
+const authTitle = document.getElementById("authTitle");
+const authSub = document.getElementById("authSub");
+const nameField = document.getElementById("nameField");
+const toggleRow = document.getElementById("toggleRow");
+const toggleLink = document.getElementById("toggleLink");
+const bonusNote = document.getElementById("bonusNote");
+const authSubmit = document.getElementById("authSubmit");
+const authError = document.getElementById("authError");
+
+function renderAuthMode(){
+  authError.textContent = "";
+  if(mode === "login"){
+    authTitle.textContent = "Welcome back";
+    authSub.textContent = "Log in with your phone number to keep earning.";
+    nameField.style.display = "none";
+    bonusNote.style.display = "none";
+    authSubmit.textContent = "Log In";
+    toggleRow.innerHTML = 'New here? <a id="toggleLink">Create an account</a>';
+  } else {
+    authTitle.textContent = "Create your account";
+    authSub.textContent = "Sign up in seconds and start earning today.";
+    nameField.style.display = "block";
+    bonusNote.style.display = "block";
+    authSubmit.textContent = "Sign Up";
+    toggleRow.innerHTML = 'Already have an account? <a id="toggleLink">Log in</a>';
+  }
+  document.getElementById("toggleLink").addEventListener("click", ()=>{
+    mode = mode === "login" ? "signup" : "login";
+    renderAuthMode();
+  });
+}
+renderAuthMode();
+
+authSubmit.addEventListener("click", ()=>{
+  const phone = document.getElementById("phoneInput").value.trim();
+  const pass = document.getElementById("passInput").value;
+  const name = document.getElementById("nameInput").value.trim();
+
+  if(!phone || phone.length < 6){ authError.textContent = "Enter a valid phone number."; return; }
+  if(!pass || pass.length < 4){ authError.textContent = "Password must be at least 4 characters."; return; }
+
+  const users = getUsers();
+
+  if(mode === "signup"){
+    if(users[phone]){ authError.textContent = "An account with this number already exists."; return; }
+    if(!name){ authError.textContent = "Please enter your name."; return; }
+    users[phone] = {
+      name, phone, password: pass,
+      balance: SIGNUP_BONUS,
+      completedQuizzes: [],
+      history: [{type:"Signup bonus", amount: SIGNUP_BONUS, ts: Date.now()}]
+    };
+    saveUsers(users);
+    loginAs(phone);
+  } else {
+    const u = users[phone];
+    if(!u || u.password !== pass){ authError.textContent = "Incorrect phone number or password."; return; }
+    loginAs(phone);
+  }
+});
+
+function loginAs(phone){
+  const users = getUsers();
+  currentUser = users[phone];
+  localStorage.setItem("quizcash_session", phone);
+  showDashboard();
+}
+
+/* ---------------- DASHBOARD ---------------- */
+const authScreen = document.getElementById("authScreen");
+const dashScreen = document.getElementById("dashScreen");
+const playScreen = document.getElementById("playScreen");
+
+function showDashboard(){
+  authScreen.style.display = "none";
+  dashScreen.classList.add("active");
+  playScreen.classList.remove("active");
+  document.getElementById("dashName").textContent = currentUser.name;
+  document.getElementById("dashPhone").textContent = currentUser.phone;
+  renderBalance();
+  renderQuizRail();
+  renderHistory();
+}
+
+function renderBalance(){
+  document.getElementById("balanceAmt").innerHTML = `৳${currentUser.balance}<span>BDT</span>`;
+}
+
+function renderQuizRail(){
+  const rail = document.getElementById("quizRail");
+  rail.innerHTML = "";
+  for(let i=0;i<QUIZ_COUNT;i++){
+    const done = currentUser.completedQuizzes.includes(i);
+    const card = document.createElement("div");
+    card.className = "quiz-card" + (done ? " done" : "");
+    card.innerHTML = `
+      <div class="glow"></div>
+      <div class="qnum">${done ? "Completed" : "Quiz " + (i+1)}</div>
+      <h3>Quiz ${i+1}</h3>
+      <p>${QUESTIONS_PER_QUIZ} quick questions · general knowledge</p>
+      <div class="reward">+${REWARD_PER_QUIZ} BDT reward</div>
+      <div class="start-pill">${done ? "✓ Reward claimed" : "Start quiz →"}</div>
+    `;
+    if(!done){
+      card.addEventListener("click", ()=> startQuiz(i));
+    }
+    rail.appendChild(card);
+  }
+}
+
+function renderHistory(){
+  const box = document.getElementById("historyBox");
+  const hist = currentUser.history || [];
+  if(hist.length === 0){
+    box.innerHTML = '<div class="empty-hint">No activity yet — finish a quiz to see it here.</div>';
+    return;
+  }
+  box.innerHTML = [...hist].reverse().map(h => `
+    <div class="history-row">
+      <span>${h.type}</span>
+      <span class="h-plus" style="${h.amount < 0 ? 'color:#ff6b6b' : ''}">${h.amount < 0 ? '' : '+'}${h.amount} BDT</span>
+    </div>
+  `).join("");
+}
+
+document.getElementById("logoutBtn").addEventListener("click", ()=>{
+  localStorage.removeItem("quizcash_session");
+  currentUser = null;
+  dashScreen.classList.remove("active");
+  playScreen.classList.remove("active");
+  authScreen.style.display = "flex";
+  document.getElementById("phoneInput").value = "";
+  document.getElementById("passInput").value = "";
+});
+
+/* ---------------- QUIZ PLAY ---------------- */
+function startQuiz(index){
+  activeQuizIndex = index;
+  activeQuestions = pickQuestionsForQuiz(index);
+  activeIdx = 0;
+  activeScore = 0;
+  dashScreen.classList.remove("active");
+  playScreen.classList.add("active");
+  renderProgress();
+  renderQuestion();
+}
+
+function renderProgress(){
+  const wrap = document.getElementById("quizProgress");
+  wrap.innerHTML = "";
+  for(let i=0;i<QUESTIONS_PER_QUIZ;i++){
+    const seg = document.createElement("div");
+    seg.className = "seg" + (i < activeIdx ? " fill" : "");
+    wrap.appendChild(seg);
+  }
+}
+
+function renderQuestion(){
+  const area = document.getElementById("playArea");
+  if(activeIdx >= QUESTIONS_PER_QUIZ){
+    return finishQuiz();
+  }
+  const item = activeQuestions[activeIdx];
+  const letters = ["A","B","C","D"];
+  area.innerHTML = `
+    <div class="question-box">
+      <div class="qcount">Question ${activeIdx+1} of ${QUESTIONS_PER_QUIZ}</div>
+      <h2>${item.q}</h2>
+    </div>
+    <div class="options" id="optionsWrap">
+      ${item.opts.map((o,i)=>`
+        <button class="option-btn" data-idx="${i}">
+          <span class="opt-letter">${letters[i]}</span><span>${o}</span>
+        </button>`).join("")}
+    </div>
+  `;
+  document.querySelectorAll(".option-btn").forEach(btn=>{
+    btn.addEventListener("click", onAnswer);
+  });
+}
+
+function onAnswer(e){
+  const btn = e.currentTarget;
+  const chosen = parseInt(btn.dataset.idx);
+  const item = activeQuestions[activeIdx];
+  const allBtns = document.querySelectorAll(".option-btn");
+  allBtns.forEach(b => b.classList.add("disabled"));
+
+  if(chosen === item.a){
+    btn.classList.add("correct");
+    activeScore++;
+  } else {
+    btn.classList.add("wrong");
+    allBtns[item.a].classList.add("correct");
+  }
+
+  setTimeout(()=>{
+    activeIdx++;
+    renderProgress();
+    renderQuestion();
+  }, 750);
+}
+
+function finishQuiz(){
+  const area = document.getElementById("playArea");
+  const earned = REWARD_PER_QUIZ;
+  currentUser.balance += earned;
+  currentUser.completedQuizzes.push(activeQuizIndex);
+  currentUser.history.push({type:`Quiz ${activeQuizIndex+1} completed`, amount: earned, ts: Date.now()});
+  persistCurrentUser();
+
+  area.innerHTML = `
+    <div class="result-box">
+      <div class="emoji">${activeScore >= 4 ? "🏆" : activeScore >= 2 ? "🎉" : "👍"}</div>
+      <h2>Quiz complete!</h2>
+      <p>You scored ${activeScore} out of ${QUESTIONS_PER_QUIZ} correct.</p>
+      <div class="earned">+${earned} <span>BDT</span></div>
+      <button class="btn btn-primary" id="returnDash">Back to dashboard</button>
+    </div>
+  `;
+  document.getElementById("returnDash").addEventListener("click", ()=>{
+    playScreen.classList.remove("active");
+    dashScreen.classList.add("active");
+    renderBalance();
+    renderQuizRail();
+    renderHistory();
+  });
+}
+
+document.getElementById("backFromPlay").addEventListener("click", ()=>{
+  playScreen.classList.remove("active");
+  dashScreen.classList.add("active");
+});
+
+function persistCurrentUser(){
+  const users = getUsers();
+  users[currentUser.phone] = currentUser;
+  saveUsers(users);
+}
+
+/* ---------------- CASHOUT ---------------- */
+const cashoutModal = document.getElementById("cashoutModal");
+const doneModal = document.getElementById("doneModal");
+
+document.getElementById("cashoutBtn").addEventListener("click", ()=>{
+  document.getElementById("cashNumber").value = "";
+  document.getElementById("cashMethod").value = "";
+  document.getElementById("cashError").textContent = "";
+  cashoutModal.classList.add("active");
+});
+document.getElementById("closeCashout").addEventListener("click", ()=>{
+  cashoutModal.classList.remove("active");
+});
+
+document.getElementById("submitCashout").addEventListener("click", ()=>{
+  const num = document.getElementById("cashNumber").value.trim();
+  const method = document.getElementById("cashMethod").value.trim();
+  const err = document.getElementById("cashError");
+  if(!num || num.length < 6){ err.textContent = "Enter a valid mobile number."; return; }
+  if(!method){ err.textContent = "Enter a cashout method (e.g. bKash)."; return; }
+
+  const cashedAmount = currentUser.balance;
+  currentUser.history.push({type:`Cashout via ${method} (${num})`, amount: -cashedAmount, ts: Date.now()});
+  currentUser.balance = 0;
+  persistCurrentUser();
+
+  cashoutModal.classList.remove("active");
+  document.getElementById("doneText").textContent =
+    `Your request to send ৳${cashedAmount} to ${num} via ${method} has been received. Your balance is now ৳0.`;
+  doneModal.classList.add("active");
+});
+
+document.getElementById("closeDone").addEventListener("click", ()=>{
+  doneModal.classList.remove("active");
+  renderBalance();
+  renderHistory();
+});
+
+/* ---------------- SESSION RESTORE ---------------- */
+window.addEventListener("load", ()=>{
+  const phone = localStorage.getItem("quizcash_session");
+  if(phone){
+    const users = getUsers();
+    if(users[phone]){
+      currentUser = users[phone];
+      showDashboard();
+    }
+  }
+});
+</script>
+</body>
+</html>

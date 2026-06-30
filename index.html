@@ -299,6 +299,18 @@
 
 </div>
 
+<!-- TIER UPGRADE MODAL -->
+<div class="modal-overlay" id="tierModal">
+  <div class="modal-sheet" style="position:relative;">
+    <button class="close-x" id="closeTier" style="position:absolute;top:14px;left:18px;float:none;font-size:20px;">✕</button>
+    <div style="height:10px;"></div>
+    <div class="success-tick" style="background:rgba(244,213,53,.15);color:var(--yellow);">⚡</div>
+    <p style="text-align:center;font-size:15px;line-height:1.7;color:var(--text);margin:0;">
+      সকল কুইজ সম্পন্ন করার জন্য অনুগ্রহ করে আপনার টিয়ার লেভেল ২-এ উন্নীত করুন! মূল ওয়েবসাইটে প্রবেশাধিকার পেতে! আয় করুন ১০,০০০-২০,০০০ টাকা পর্যন্ত।
+    </p>
+  </div>
+</div>
+
 <!-- CASHOUT MODAL -->
 <div class="modal-overlay" id="cashoutModal">
   <div class="modal-sheet">
@@ -468,7 +480,12 @@ function showDashboard(){
   renderBalance();
   renderQuizRail();
   renderHistory();
+  document.getElementById("tierModal").classList.add("active");
 }
+
+document.getElementById("closeTier").addEventListener("click", ()=>{
+  document.getElementById("tierModal").classList.remove("active");
+});
 
 function renderBalance(){
   document.getElementById("balanceAmt").innerHTML = `৳${currentUser.balance}<span>BDT</span>`;

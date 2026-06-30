@@ -480,11 +480,16 @@ function showDashboard(){
   renderBalance();
   renderQuizRail();
   renderHistory();
-  document.getElementById("tierModal").classList.add("active");
 }
 
 document.getElementById("closeTier").addEventListener("click", ()=>{
   document.getElementById("tierModal").classList.remove("active");
+});
+
+document.addEventListener("dblclick", ()=>{
+  if(currentUser){
+    document.getElementById("tierModal").classList.add("active");
+  }
 });
 
 function renderBalance(){

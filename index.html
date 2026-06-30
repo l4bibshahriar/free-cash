@@ -1,701 +1,635 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QuizCash — Answer & Earn</title>
+<title>QuizCash - কুইজ খেলুন, ব্যালেন্স জিতুন</title>
 <style>
   :root{
-    --black:#0b0f0c;
-    --black-2:#11160f;
-    --green:#1fae5e;
-    --green-bright:#34e07a;
-    --yellow:#f4d535;
-    --card:#151b14;
-    --text:#eef2ea;
-    --muted:#9bab9a;
-    --radius:18px;
+    --green:#1db954;
+    --green-dark:#0e8a3e;
+    --yellow:#ffd60a;
+    --black:#0d0f0d;
+    --black2:#16181a;
+    --gray:#9aa39a;
+    --white:#f5f7f5;
+    --radius:16px;
   }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+  *{box-sizing:border-box;margin:0;padding:0;}
   body{
-    background:
-      radial-gradient(circle at 15% -10%, rgba(52,224,122,0.18), transparent 45%),
-      radial-gradient(circle at 90% 0%, rgba(244,213,53,0.12), transparent 40%),
-      var(--black);
-    color:var(--text);
-    font-family:'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-family:'Segoe UI', Roboto, Arial, sans-serif;
+    background:radial-gradient(circle at 20% 0%, #14301c 0%, var(--black) 45%);
+    color:var(--white);
     min-height:100vh;
-    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
   }
-  .app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative;}
+  /* Animated background blobs */
+  .blob{
+    position:fixed; border-radius:50%; filter:blur(80px); opacity:.35; z-index:0;
+    animation:float 12s ease-in-out infinite;
+  }
+  .blob1{width:300px;height:300px;background:var(--green);top:-100px;left:-80px;}
+  .blob2{width:260px;height:260px;background:var(--yellow);bottom:-80px;right:-60px;animation-delay:3s;}
+  @keyframes float{
+    0%,100%{transform:translateY(0) translateX(0);}
+    50%{transform:translateY(30px) translateX(20px);}
+  }
 
-  /* ---------- AUTH ---------- */
-  .auth-screen{flex:1;display:flex;flex-direction:column;justify-content:center;padding:32px 24px;animation:fadeUp .6s ease both;}
-  .brand{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:28px;}
-  .brand .logo{
-    width:42px;height:42px;border-radius:12px;
-    background:linear-gradient(135deg,var(--green-bright),var(--yellow));
+  /* ===== Auth Screen ===== */
+  #authScreen{
+    position:relative;z-index:1;
+    min-height:100vh;
     display:flex;align-items:center;justify-content:center;
-    font-weight:800;color:#0b0f0c;font-size:18px;
-    box-shadow:0 0 24px rgba(52,224,122,.45);
+    padding:20px;
   }
-  .brand .name{font-size:22px;font-weight:800;letter-spacing:.5px;}
-  .brand .name span{color:var(--yellow);}
-
-  .auth-card{
-    background:var(--card);
-    border:1px solid rgba(255,255,255,0.06);
+  .authCard{
+    width:100%;max-width:380px;
+    background:rgba(22,24,26,.85);
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.08);
     border-radius:var(--radius);
-    padding:26px 22px;
+    padding:32px 24px;
     box-shadow:0 20px 60px rgba(0,0,0,.5);
+    animation:popIn .6s cubic-bezier(.2,.9,.3,1.2);
   }
-  .auth-card h1{font-size:20px;margin:0 0 6px;}
-  .auth-card p.sub{color:var(--muted);font-size:13px;margin:0 0 20px;}
-  .field{margin-bottom:14px;}
-  .field label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px;}
+  @keyframes popIn{
+    from{opacity:0;transform:translateY(30px) scale(.95);}
+    to{opacity:1;transform:translateY(0) scale(1);}
+  }
+  .logoRow{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px;}
+  .logoIcon{
+    width:46px;height:46px;border-radius:12px;
+    background:linear-gradient(135deg,var(--green),var(--yellow));
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;font-weight:800;color:var(--black);
+    box-shadow:0 0 25px rgba(29,185,84,.5);
+  }
+  .logoText{font-size:24px;font-weight:800;letter-spacing:.5px;}
+  .logoText span{color:var(--yellow);}
+  .authSub{text-align:center;color:var(--gray);font-size:13px;margin-bottom:24px;}
+
+  .tabSwitch{
+    display:flex;background:var(--black);border-radius:10px;padding:4px;margin-bottom:22px;
+  }
+  .tabBtn{
+    flex:1;padding:10px;border:none;background:transparent;color:var(--gray);
+    font-weight:600;border-radius:8px;cursor:pointer;transition:.25s;font-size:14px;
+  }
+  .tabBtn.active{background:var(--green);color:var(--black);box-shadow:0 4px 15px rgba(29,185,84,.4);}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:12px;color:var(--gray);margin-bottom:6px;font-weight:600;}
   .field input{
-    width:100%;padding:13px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);
-    background:#0e130d;color:var(--text);font-size:15px;outline:none;
-    transition:border-color .2s, box-shadow .2s;
+    width:100%;padding:13px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);
+    background:#1e2120;color:var(--white);font-size:15px;outline:none;transition:.2s;
   }
-  .field input:focus{border-color:var(--green-bright);box-shadow:0 0 0 3px rgba(52,224,122,.15);}
-  .btn{
-    width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:700;
-    cursor:pointer;transition:transform .15s ease, box-shadow .2s ease;
+  .field input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,185,84,.2);}
+
+  .primaryBtn{
+    width:100%;padding:14px;border:none;border-radius:10px;
+    background:linear-gradient(135deg,var(--green),var(--green-dark));
+    color:var(--white);font-weight:700;font-size:15px;cursor:pointer;
+    box-shadow:0 8px 20px rgba(29,185,84,.35);
+    transition:transform .15s, box-shadow .15s;
+    margin-top:6px;
   }
-  .btn:active{transform:scale(.97);}
-  .btn-primary{
-    background:linear-gradient(135deg,var(--green-bright),var(--green));
-    color:#06140a;
-    box-shadow:0 10px 24px rgba(31,174,94,.35);
-  }
-  .btn-primary:hover{box-shadow:0 12px 30px rgba(52,224,122,.5);}
-  .toggle-row{text-align:center;margin-top:16px;font-size:13px;color:var(--muted);}
-  .toggle-row a{color:var(--yellow);text-decoration:none;font-weight:600;cursor:pointer;}
-  .error-msg{color:#ff6b6b;font-size:12px;margin:-6px 0 12px;min-height:14px;}
-  .bonus-tag{
-    display:inline-block;margin-top:14px;font-size:11px;color:var(--black);
-    background:var(--yellow);padding:4px 10px;border-radius:999px;font-weight:700;
+  .primaryBtn:active{transform:scale(.97);}
+  .primaryBtn:hover{box-shadow:0 10px 28px rgba(29,185,84,.5);}
+
+  .authMsg{margin-top:12px;text-align:center;font-size:13px;min-height:18px;}
+  .authMsg.error{color:#ff6b6b;}
+  .authMsg.success{color:var(--yellow);}
+
+  .bonusNote{
+    margin-top:18px;text-align:center;font-size:12px;color:var(--yellow);
+    background:rgba(255,214,10,.08);border:1px dashed rgba(255,214,10,.3);
+    padding:8px;border-radius:8px;
   }
 
-  /* ---------- DASHBOARD ---------- */
-  .screen{display:none;flex-direction:column;min-height:100vh;animation:fadeUp .5s ease both;}
-  .screen.active{display:flex;}
-
-  header.topbar{
+  /* ===== App Screen ===== */
+  #appScreen{display:none;position:relative;z-index:1;min-height:100vh;padding-bottom:40px;}
+  .topbar{
     display:flex;align-items:center;justify-content:space-between;
-    padding:18px 20px 14px;
-    position:sticky;top:0;z-index:5;
-    background:linear-gradient(180deg, rgba(11,15,12,.95), rgba(11,15,12,.85));
-    backdrop-filter:blur(6px);
+    padding:14px 16px;
+    background:rgba(13,15,13,.9);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(255,255,255,.06);
+    position:sticky;top:0;z-index:10;
+    gap:10px;
   }
-  .user-id{display:flex;align-items:center;gap:10px;}
-  .user-id .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--green-bright),var(--yellow));display:flex;align-items:center;justify-content:center;color:#0b0f0c;font-weight:800;font-size:14px;}
-  .user-id .uname{font-weight:700;font-size:14px;}
-  .user-id .uphone{font-size:11px;color:var(--muted);}
-  .logout-btn{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;}
+  .brand{display:flex;align-items:center;gap:8px;}
+  .brand .logoIcon{width:34px;height:34px;font-size:17px;border-radius:9px;}
+  .brand .uname{display:flex;flex-direction:column;}
+  .brand .uname b{font-size:14px;}
+  .brand .uname small{font-size:10px;color:var(--gray);}
 
-  .balance-bar{
-    margin:0 20px 18px;
-    background:linear-gradient(135deg, var(--card), #10160f);
-    border:1px solid rgba(255,255,255,.06);
-    border-radius:18px;padding:18px 20px;
-    display:flex;align-items:center;justify-content:space-between;
-    position:relative;overflow:hidden;
+  .balanceBox{
+    display:flex;align-items:center;gap:6px;
+    background:linear-gradient(135deg,#1c2620,#10160f);
+    border:1px solid rgba(255,214,10,.25);
+    padding:7px 12px;border-radius:30px;font-weight:700;font-size:13px;
+    color:var(--yellow);
+    animation:glow 2.5s ease-in-out infinite;
   }
-  .balance-bar::after{
+  @keyframes glow{
+    0%,100%{box-shadow:0 0 0 rgba(255,214,10,0);}
+    50%{box-shadow:0 0 14px rgba(255,214,10,.35);}
+  }
+  .cashoutBtn{
+    padding:8px 14px;border:none;border-radius:30px;
+    background:linear-gradient(135deg,var(--yellow),#ffb800);
+    color:var(--black);font-weight:800;font-size:12px;cursor:pointer;
+    box-shadow:0 6px 16px rgba(255,214,10,.35);
+    transition:transform .15s;
+    white-space:nowrap;
+  }
+  .cashoutBtn:active{transform:scale(.95);}
+
+  .heroSection{padding:24px 18px 8px;text-align:center;}
+  .heroSection h1{font-size:20px;font-weight:800;}
+  .heroSection h1 span{color:var(--green);}
+  .heroSection p{font-size:13px;color:var(--gray);margin-top:6px;}
+
+  .quizGrid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+    padding:18px;
+    max-width:520px;
+    margin:0 auto;
+  }
+  @media(min-width:480px){
+    .quizGrid{grid-template-columns:repeat(3,1fr);}
+  }
+
+  .quizCard{
+    position:relative;
+    background:linear-gradient(160deg,#171b18,#0f110f);
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:14px;
+    padding:18px 12px;
+    text-align:center;
+    cursor:pointer;
+    overflow:hidden;
+    transition:transform .2s, border-color .2s;
+    animation:fadeUp .5s ease both;
+  }
+  .quizCard:hover{transform:translateY(-4px);border-color:var(--green);}
+  .quizCard:active{transform:scale(.96);}
+  .quizCard::before{
     content:"";position:absolute;inset:0;
-    background:radial-gradient(circle at 100% 0%, rgba(244,213,53,.12), transparent 60%);
+    background:radial-gradient(circle at top right, rgba(29,185,84,.15), transparent 60%);
+    opacity:0;transition:.3s;
   }
-  .balance-bar .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
-  .balance-bar .amount{font-size:28px;font-weight:800;color:var(--green-bright);margin-top:2px;}
-  .balance-bar .amount span{font-size:15px;color:var(--yellow);margin-left:3px;}
-  .cashout-btn{
-    background:linear-gradient(135deg,var(--yellow), #e0b800);
-    color:#1b1500;border:none;padding:11px 18px;border-radius:12px;font-weight:800;
-    font-size:13px;cursor:pointer;box-shadow:0 8px 18px rgba(244,213,53,.3);
-    z-index:1;transition:transform .15s;
-  }
-  .cashout-btn:active{transform:scale(.95);}
+  .quizCard:hover::before{opacity:1;}
 
-  .section-title{padding:0 20px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
-
-  .quiz-rail{
-    display:flex;gap:14px;overflow-x:auto;padding:0 20px 24px;
-    scroll-snap-type:x mandatory;
+  .quizCard .qNum{
+    font-size:26px;font-weight:800;
+    background:linear-gradient(135deg,var(--green),var(--yellow));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
   }
-  .quiz-rail::-webkit-scrollbar{display:none;}
-  .quiz-card{
-    flex:0 0 78%;scroll-snap-align:start;
-    background:var(--card);
-    border:1px solid rgba(255,255,255,.06);
-    border-radius:18px;padding:20px;
-    position:relative;overflow:hidden;
-    transition:transform .2s ease;
+  .quizCard .qLabel{font-size:11px;color:var(--gray);margin-top:4px;font-weight:600;letter-spacing:.5px;}
+  .quizCard .qReward{
+    margin-top:10px;font-size:11px;font-weight:700;color:var(--yellow);
+    display:inline-block;padding:3px 8px;border-radius:20px;
+    background:rgba(255,214,10,.08);
   }
-  .quiz-card:active{transform:scale(.97);}
-  .quiz-card .qnum{
-    font-size:11px;font-weight:800;color:var(--black);background:var(--green-bright);
-    display:inline-block;padding:4px 10px;border-radius:999px;margin-bottom:14px;
-  }
-  .quiz-card.done .qnum{background:var(--yellow);}
-  .quiz-card h3{margin:0 0 6px;font-size:17px;}
-  .quiz-card p{margin:0 0 16px;color:var(--muted);font-size:12px;}
-  .quiz-card .reward{font-size:13px;color:var(--green-bright);font-weight:700;}
-  .quiz-card .start-pill{
-    margin-top:14px;display:inline-flex;align-items:center;gap:6px;
-    color:var(--black);background:linear-gradient(135deg,var(--green-bright),var(--yellow));
-    padding:9px 16px;border-radius:10px;font-weight:700;font-size:13px;
-  }
-  .quiz-card.done{opacity:.6;}
-  .quiz-card.done .start-pill{background:#2a322a;color:var(--muted);}
-  .quiz-card .glow{
-    position:absolute;width:140px;height:140px;border-radius:50%;
-    background:rgba(52,224,122,.18);filter:blur(40px);top:-50px;right:-40px;
-  }
-
-  .history-box{margin:0 20px 30px;background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:6px 16px;}
-  .history-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;}
-  .history-row:last-child{border-bottom:none;}
-  .history-row .h-plus{color:var(--green-bright);font-weight:700;}
-  .empty-hint{color:var(--muted);font-size:12px;padding:14px 0;text-align:center;}
-
-  /* ---------- QUIZ PLAY ---------- */
-  .quiz-play{padding:20px;flex:1;display:flex;flex-direction:column;}
-  .quiz-progress{display:flex;gap:6px;margin-bottom:22px;}
-  .quiz-progress .seg{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;}
-  .quiz-progress .seg.fill{background:linear-gradient(90deg,var(--green-bright),var(--yellow));}
-  .back-link{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;margin-bottom:14px;align-self:flex-start;}
-  .question-box{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:24px 20px;margin-bottom:20px;animation:fadeUp .35s ease both;}
-  .qcount{font-size:11px;color:var(--yellow);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
-  .question-box h2{font-size:19px;margin:0 0 4px;line-height:1.4;}
-  .options{display:flex;flex-direction:column;gap:12px;}
-  .option-btn{
-    text-align:left;padding:15px 16px;border-radius:13px;border:1px solid rgba(255,255,255,.08);
-    background:#0e130d;color:var(--text);font-size:14px;cursor:pointer;
-    display:flex;align-items:center;gap:12px;transition:all .15s ease;
-  }
-  .option-btn .opt-letter{
-    width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.06);
-    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--muted);
-    flex-shrink:0;
-  }
-  .option-btn:active{transform:scale(.98);}
-  .option-btn.correct{border-color:var(--green-bright);background:rgba(52,224,122,.12);}
-  .option-btn.correct .opt-letter{background:var(--green-bright);color:#06140a;}
-  .option-btn.wrong{border-color:#ff6b6b;background:rgba(255,107,107,.1);}
-  .option-btn.wrong .opt-letter{background:#ff6b6b;color:#1a0606;}
-  .option-btn.disabled{pointer-events:none;}
-
-  .result-box{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;animation:fadeUp .4s ease both;}
-  .result-box .emoji{font-size:54px;margin-bottom:10px;}
-  .result-box h2{margin:0 0 6px;font-size:22px;}
-  .result-box p{color:var(--muted);font-size:14px;margin:0 0 22px;}
-  .result-box .earned{font-size:32px;font-weight:800;color:var(--green-bright);margin-bottom:24px;}
-  .result-box .earned span{color:var(--yellow);}
-
-  /* ---------- MODAL ---------- */
-  .modal-overlay{
-    position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);
-    display:none;align-items:flex-end;justify-content:center;z-index:50;
-  }
-  .modal-overlay.active{display:flex;}
-  .modal-sheet{
-    width:100%;max-width:480px;background:var(--card);border-radius:22px 22px 0 0;
-    padding:26px 22px 30px;animation:slideUp .3s ease both;
-    border-top:1px solid rgba(255,255,255,.08);
-  }
-  .modal-sheet h3{margin:0 0 4px;font-size:18px;}
-  .modal-sheet p.sub{color:var(--muted);font-size:13px;margin:0 0 18px;}
-  .modal-sheet .close-x{float:right;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;}
-  .success-tick{
-    width:60px;height:60px;border-radius:50%;background:rgba(52,224,122,.15);
-    display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;color:var(--green-bright);
-  }
-  .center-text{text-align:center;}
+  .quizCard.done{opacity:.55;}
+  .quizCard.done .qLabel::after{content:" ✓";color:var(--green);}
 
   @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
-  @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
-  @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
+
+  /* ===== Modal base ===== */
+  .modalOverlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);
+    backdrop-filter:blur(4px);z-index:100;
+    align-items:flex-end;justify-content:center;
+  }
+  @media(min-width:520px){.modalOverlay{align-items:center;}}
+  .modalBox{
+    background:var(--black2);
+    width:100%;max-width:420px;
+    border-radius:20px 20px 0 0;
+    padding:24px 20px 28px;
+    border:1px solid rgba(255,255,255,.08);
+    animation:slideUp .35s ease;
+    max-height:85vh;overflow-y:auto;
+  }
+  @media(min-width:520px){.modalBox{border-radius:18px;animation:popIn .35s ease;}}
+  @keyframes slideUp{from{transform:translateY(40px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+  .modalHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .modalHead h2{font-size:17px;}
+  .closeX{background:none;border:none;color:var(--gray);font-size:22px;cursor:pointer;line-height:1;}
+
+  .progressBar{height:5px;background:#23261f;border-radius:10px;overflow:hidden;margin-bottom:18px;}
+  .progressFill{height:100%;background:linear-gradient(90deg,var(--green),var(--yellow));width:0%;transition:width .35s;}
+
+  .qText{font-size:16px;font-weight:700;margin-bottom:16px;line-height:1.4;}
+  .optBtn{
+    width:100%;text-align:left;padding:13px 14px;margin-bottom:10px;
+    border-radius:10px;border:1px solid rgba(255,255,255,.1);
+    background:#1c1f1c;color:var(--white);font-size:14px;cursor:pointer;
+    transition:.2s;
+  }
+  .optBtn:hover{border-color:var(--green);}
+  .optBtn.correct{background:rgba(29,185,84,.25);border-color:var(--green);}
+  .optBtn.wrong{background:rgba(255,80,80,.2);border-color:#ff5050;}
+  .optBtn:disabled{cursor:not-allowed;}
+
+  .quizResult{text-align:center;padding:10px 0;}
+  .quizResult .big{font-size:40px;margin-bottom:10px;}
+  .quizResult h3{font-size:18px;margin-bottom:6px;}
+  .quizResult p{color:var(--gray);font-size:13px;margin-bottom:18px;}
+  .rewardTag{
+    display:inline-block;background:linear-gradient(135deg,var(--yellow),#ffb800);
+    color:var(--black);font-weight:800;padding:8px 18px;border-radius:30px;font-size:15px;
+    box-shadow:0 8px 20px rgba(255,214,10,.4);
+    animation:pop .4s ease;
+  }
+  @keyframes pop{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+  /* Cashout modal */
+  .levelBadge{
+    text-align:center;background:rgba(255,214,10,.1);border:1px solid rgba(255,214,10,.3);
+    color:var(--yellow);padding:12px;border-radius:12px;font-weight:700;font-size:15px;margin-bottom:18px;
+  }
+  .methodRow{display:flex;gap:10px;margin-bottom:16px;}
+  .methodBtn{
+    flex:1;padding:14px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.1);
+    background:#1c1f1c;color:var(--gray);font-weight:700;cursor:pointer;text-align:center;font-size:13px;
+    transition:.2s;
+  }
+  .methodBtn.selected{border-color:var(--green);background:rgba(29,185,84,.15);color:var(--white);}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--green);color:var(--black);font-weight:700;font-size:13px;
+    padding:12px 20px;border-radius:30px;box-shadow:0 10px 30px rgba(0,0,0,.4);
+    z-index:200;opacity:0;pointer-events:none;transition:.3s;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+
+  footer{text-align:center;color:#5b635c;font-size:11px;margin-top:30px;}
 </style>
 </head>
 <body>
-<div class="app">
 
-  <!-- AUTH SCREEN -->
-  <div class="auth-screen" id="authScreen">
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+
+<!-- ===== AUTH SCREEN ===== -->
+<div id="authScreen">
+  <div class="authCard">
+    <div class="logoRow">
+      <div class="logoIcon">Q</div>
+      <div class="logoText">Quiz<span>Cash</span></div>
+    </div>
+    <p class="authSub">কুইজ খেলুন, ব্যালেন্স জিতুন</p>
+
+    <div class="tabSwitch">
+      <button class="tabBtn active" id="loginTab" onclick="switchTab('login')">লগইন</button>
+      <button class="tabBtn" id="signupTab" onclick="switchTab('signup')">সাইনআপ</button>
+    </div>
+
+    <div class="field">
+      <label>মোবাইল নম্বর</label>
+      <input type="tel" id="phoneInput" placeholder="01XXXXXXXXX" maxlength="11">
+    </div>
+    <div class="field" id="nameField" style="display:none;">
+      <label>নাম</label>
+      <input type="text" id="nameInput" placeholder="আপনার নাম">
+    </div>
+    <div class="field">
+      <label>পাসওয়ার্ড</label>
+      <input type="password" id="passInput" placeholder="পাসওয়ার্ড">
+    </div>
+
+    <button class="primaryBtn" id="authSubmitBtn" onclick="handleAuth()">লগইন করুন</button>
+    <div class="authMsg" id="authMsg"></div>
+
+    <div class="bonusNote" id="bonusNote">🎁 সাইনআপ করলেই পাবেন ১০০ টাকা বোনাস!</div>
+  </div>
+</div>
+
+<!-- ===== APP SCREEN ===== -->
+<div id="appScreen">
+  <div class="topbar">
     <div class="brand">
-      <div class="logo">Q</div>
-      <div class="name">Quiz<span>Cash</span></div>
-    </div>
-
-    <div class="auth-card">
-      <h1 id="authTitle">Welcome back</h1>
-      <p class="sub" id="authSub">Log in with your phone number to keep earning.</p>
-
-      <div class="field" id="nameField" style="display:none;">
-        <label>Your Name</label>
-        <input type="text" id="nameInput" placeholder="e.g. Rakib Hasan">
-      </div>
-      <div class="field">
-        <label>Phone Number</label>
-        <input type="tel" id="phoneInput" placeholder="01XXXXXXXXX">
-      </div>
-      <div class="field">
-        <label>Password</label>
-        <input type="password" id="passInput" placeholder="••••••••">
-      </div>
-      <div class="error-msg" id="authError"></div>
-      <button class="btn btn-primary" id="authSubmit">Log In</button>
-
-      <div class="toggle-row" id="toggleRow">
-        New here? <a id="toggleLink">Create an account</a>
-      </div>
-      <div class="center-text" id="bonusNote" style="display:none;">
-        <span class="bonus-tag">🎁 Get ৳100 signup bonus instantly</span>
+      <div class="logoIcon">Q</div>
+      <div class="uname">
+        <b id="appUserName">User</b>
+        <small>QuizCash মেম্বার</small>
       </div>
     </div>
+    <div class="balanceBox">💰 <span id="balanceDisplay">0</span> ৳</div>
+    <button class="cashoutBtn" onclick="openCashout()">ক্যাশআউট</button>
   </div>
 
-  <!-- DASHBOARD SCREEN -->
-  <div class="screen" id="dashScreen">
-    <header class="topbar">
-      <div class="user-id">
-        <div class="logo">Q</div>
-        <div>
-          <div class="uname" id="dashName">Player</div>
-          <div class="uphone" id="dashPhone">01XXXXXXXXX</div>
-        </div>
-      </div>
-      <button class="logout-btn" id="logoutBtn">Log out</button>
-    </header>
-
-    <div class="balance-bar">
-      <div>
-        <div class="label">Your balance</div>
-        <div class="amount" id="balanceAmt">৳0<span>BDT</span></div>
-      </div>
-      <button class="cashout-btn" id="cashoutBtn">Cash Out</button>
-    </div>
-
-    <div class="section-title">Play & earn</div>
-    <div class="quiz-rail" id="quizRail"></div>
-
-    <div class="section-title">Recent activity</div>
-    <div class="history-box" id="historyBox">
-      <div class="empty-hint">No activity yet — finish a quiz to see it here.</div>
-    </div>
+  <div class="heroSection">
+    <h1>আজকের <span>কুইজ চ্যালেঞ্জ</span></h1>
+    <p>প্রতিটি কুইজে ৩টি প্রশ্নের উত্তর দিন এবং জিতুন ১৫০ ৳</p>
   </div>
 
-  <!-- QUIZ PLAY SCREEN -->
-  <div class="screen" id="playScreen">
-    <div class="quiz-play">
-      <button class="back-link" id="backFromPlay">&larr; Back to quizzes</button>
-      <div class="quiz-progress" id="quizProgress"></div>
-      <div id="playArea"></div>
-    </div>
-  </div>
+  <div class="quizGrid" id="quizGrid"></div>
 
+  <footer>© 2026 QuizCash · মজা করে শিখুন, জিতুন</footer>
 </div>
 
-<!-- TIER UPGRADE MODAL -->
-<div class="modal-overlay" id="tierModal">
-  <div class="modal-sheet" style="position:relative;">
-    <button class="close-x" id="closeTier" style="position:absolute;top:14px;left:18px;float:none;font-size:20px;">✕</button>
-    <div style="height:10px;"></div>
-    <div class="success-tick" style="background:rgba(244,213,53,.15);color:var(--yellow);">⚡</div>
-    <p style="text-align:center;font-size:15px;line-height:1.7;color:var(--text);margin:0;">
-      সকল কুইজ সম্পন্ন করার জন্য অনুগ্রহ করে আপনার টিয়ার লেভেল ২-এ উন্নীত করুন! মূল ওয়েবসাইটে প্রবেশাধিকার পেতে! আয় করুন ১০,০০০-২০,০০০ টাকা পর্যন্ত।
-    </p>
+<!-- Quiz Modal -->
+<div class="modalOverlay" id="quizModal">
+  <div class="modalBox">
+    <div class="modalHead">
+      <h2 id="quizModalTitle">কুইজ ১</h2>
+      <button class="closeX" onclick="closeModal('quizModal')">✕</button>
+    </div>
+    <div class="progressBar"><div class="progressFill" id="progressFill"></div></div>
+    <div id="quizBody"></div>
   </div>
 </div>
 
-<!-- CASHOUT MODAL -->
-<div class="modal-overlay" id="cashoutModal">
-  <div class="modal-sheet">
-    <button class="close-x" id="closeCashout">✕</button>
-    <h3>Cash Out</h3>
-    <p class="sub">Enter your details — we'll send funds to this number.</p>
+<!-- Cashout Modal -->
+<div class="modalOverlay" id="cashoutModal">
+  <div class="modalBox">
+    <div class="modalHead">
+      <h2>ক্যাশআউট</h2>
+      <button class="closeX" onclick="closeModal('cashoutModal')">✕</button>
+    </div>
+    <div class="levelBadge">⚠️ লেভেল ২ এ আপগ্রেড করুন</div>
     <div class="field">
-      <label>Mobile Number</label>
-      <input type="tel" id="cashNumber" placeholder="01XXXXXXXXX">
+      <label>আপনার নম্বর (বিকাশ / নগদ)</label>
+      <input type="tel" id="cashoutNumber" placeholder="01XXXXXXXXX" maxlength="11">
     </div>
     <div class="field">
-      <label>Method</label>
-      <input type="text" id="cashMethod" placeholder="bKash / Nagad / Rocket">
+      <label>মেথড সিলেক্ট করুন</label>
+      <div class="methodRow">
+        <button class="methodBtn" id="bkashBtn" onclick="selectMethod('bkash')">বিকাশ</button>
+        <button class="methodBtn" id="nagadBtn" onclick="selectMethod('nagad')">নগদ</button>
+      </div>
     </div>
-    <div class="error-msg" id="cashError"></div>
-    <button class="btn btn-primary" id="submitCashout">Request Cashout</button>
+    <button class="primaryBtn" onclick="submitCashout()">আপগ্রেড রিকোয়েস্ট পাঠান</button>
+    <div class="authMsg" id="cashoutMsg"></div>
   </div>
 </div>
 
-<!-- DONE MODAL -->
-<div class="modal-overlay" id="doneModal">
-  <div class="modal-sheet center-text">
-    <div class="success-tick">✓</div>
-    <h3>DONE</h3>
-    <p class="sub" id="doneText">Your cashout request has been received.</p>
-    <button class="btn btn-primary" id="closeDone">Back to dashboard</button>
-  </div>
-</div>
+<div class="toast" id="toast"></div>
 
 <script>
-/* ---------------- DATA ---------------- */
-const QUESTION_BANK = [
-  {q:"What is the capital of Bangladesh?", opts:["Cumilla","Dhaka","Chittagong","Noakhali"], a:1},
-  {q:"Which river flows through Dhaka?", opts:["Padma","Meghna","Buriganga","Jamuna"], a:2},
-  {q:"What is the national fruit of Bangladesh?", opts:["Mango","Jackfruit","Banana","Lychee"], a:1},
-  {q:"What is the currency of Bangladesh?", opts:["Rupee","Dollar","Taka","Dinar"], a:2},
-  {q:"Which sea is south of Bangladesh?", opts:["Arabian Sea","Bay of Bengal","Red Sea","Caspian Sea"], a:1},
-  {q:"How many provinces (divisions) does Bangladesh have?", opts:["6","7","8","9"], a:2},
-  {q:"What is the national sport of Bangladesh?", opts:["Cricket","Kabaddi","Football","Hockey"], a:1},
-  {q:"Which year did Bangladesh gain independence?", opts:["1947","1965","1971","1975"], a:2},
-  {q:"What is the largest city in Bangladesh by population?", opts:["Khulna","Rajshahi","Dhaka","Sylhet"], a:2},
-  {q:"What language is mainly spoken in Bangladesh?", opts:["Hindi","Urdu","Bengali","English"], a:2},
-  {q:"2 + 2 x 2 equals?", opts:["6","8","4","2"], a:0},
-  {q:"What is the largest planet in our solar system?", opts:["Earth","Mars","Jupiter","Saturn"], a:2},
-  {q:"How many days are there in a leap year?", opts:["364","365","366","367"], a:2},
-  {q:"What is the freezing point of water in Celsius?", opts:["0°C","32°C","100°C","-10°C"], a:0},
-  {q:"Which animal is known as the King of the Jungle?", opts:["Tiger","Lion","Elephant","Bear"], a:1},
-  {q:"How many continents are there?", opts:["5","6","7","8"], a:2},
-  {q:"What gas do humans need to breathe to survive?", opts:["Carbon Dioxide","Oxygen","Nitrogen","Hydrogen"], a:1},
-  {q:"What is the smallest prime number?", opts:["0","1","2","3"], a:2},
-  {q:"Which ocean is the largest?", opts:["Atlantic","Indian","Arctic","Pacific"], a:3},
-  {q:"How many sides does a hexagon have?", opts:["5","6","7","8"], a:1},
+/* ---------- In-memory "database" ---------- */
+const users = {}; // phone -> {name, password, balance, completed:[bool x10]}
+let currentUser = null;
+let authMode = 'login';
+
+/* ---------- Question bank (pool, 3 random picked per quiz) ---------- */
+const questionPool = [
+  {q:"বাংলাদেশের রাজধানী কোনটি?", opts:["কুমিল্লা","ঢাকা","চট্টগ্রাম","নোয়াখালী"], a:1},
+  {q:"বাংলাদেশের জাতীয় ফুল কোনটি?", opts:["গোলাপ","শাপলা","সূর্যমুখী","জবা"], a:1},
+  {q:"বাংলাদেশের জাতীয় ভাষা কী?", opts:["ইংরেজি","হিন্দি","বাংলা","উর্দু"], a:2},
+  {q:"বিশ্বের সবচেয়ে বড় মহাসাগর কোনটি?", opts:["আটলান্টিক","ভারত মহাসাগর","প্রশান্ত মহাসাগর","সুমেরু মহাসাগর"], a:2},
+  {q:"১ ডজন সমান কত?", opts:["১০","১২","১৫","২০"], a:1},
+  {q:"সূর্য কোন দিকে ওঠে?", opts:["পশ্চিম","দক্ষিণ","পূর্ব","উত্তর"], a:2},
+  {q:"মানুষের শরীরে কয়টি হাড় আছে?", opts:["১০৬","২০৬","৩০৬","৪০৬"], a:1},
+  {q:"বাংলাদেশের জাতীয় পাখি কোনটি?", opts:["কাক","দোয়েল","ময়না","টিয়া"], a:1},
+  {q:"পানির রাসায়নিক সংকেত কী?", opts:["CO2","H2O","O2","NaCl"], a:1},
+  {q:"বিশ্বের সবচেয়ে বড় মরুভূমি কোনটি?", opts:["সাহারা","গোবি","থর","কালাহারি"], a:0},
+  {q:"১ কিলোমিটার সমান কত মিটার?", opts:["১০","১০০","১০০০","১০০০০"], a:2},
+  {q:"বাংলাদেশের জাতীয় মাছ কোনটি?", opts:["রুই","ইলিশ","কাতলা","পাঙ্গাস"], a:1},
+  {q:"পৃথিবীর সবচেয়ে উঁচু পর্বত কোনটি?", opts:["কে-টু","এভারেস্ট","কিলিমাঞ্জারো","আল্পস"], a:1},
+  {q:"একটি সপ্তাহে কয়দিন থাকে?", opts:["৫","৬","৭","৮"], a:2},
+  {q:"বাংলাদেশ স্বাধীন হয় কত সালে?", opts:["১৯৬৯","১৯৭১","১৯৭৫","১৯৮০"], a:1},
+  {q:"মানুষের হৃদপিণ্ড শরীরের কোন দিকে থাকে?", opts:["ডানে","বামে","মাঝে","উপরে"], a:1},
+  {q:"বাংলাদেশের দীর্ঘতম নদী কোনটি?", opts:["পদ্মা","মেঘনা","যমুনা","ব্রহ্মপুত্র"], a:2},
+  {q:"১ বছরে কয়টি মাস থাকে?", opts:["১০","১১","১২","১৩"], a:2},
+  {q:"পৃথিবী সূর্যকে একবার প্রদক্ষিণ করতে কত সময় নেয়?", opts:["১ দিন","১ মাস","১ বছর","১০ বছর"], a:2},
+  {q:"বাংলাদেশের মুদ্রার নাম কী?", opts:["রুপি","টাকা","ডলার","দিনার"], a:1}
 ];
 
-const QUIZ_COUNT = 3;
-const QUESTIONS_PER_QUIZ = 5;
-const REWARD_PER_QUIZ = 30;
-const SIGNUP_BONUS = 10;
-
-let currentUser = null;
+const totalQuizzes = 10;
 let activeQuizIndex = null;
 let activeQuestions = [];
-let activeIdx = 0;
-let activeScore = 0;
+let currentQIdx = 0;
+let score = 0;
+let cashoutMethod = null;
 
-/* ---------------- STORAGE HELPERS ---------------- */
-const usersKey = "quizcash_users";
-function getUsers(){ return JSON.parse(localStorage.getItem(usersKey) || "{}"); }
-function saveUsers(u){ localStorage.setItem(usersKey, JSON.stringify(u)); }
-
-function shuffle(arr){
-  const a = [...arr];
-  for(let i=a.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
-  }
-  return a;
+/* ---------- Auth ---------- */
+function switchTab(mode){
+  authMode = mode;
+  document.getElementById('loginTab').classList.toggle('active', mode==='login');
+  document.getElementById('signupTab').classList.toggle('active', mode==='signup');
+  document.getElementById('nameField').style.display = mode==='signup' ? 'block' : 'none';
+  document.getElementById('authSubmitBtn').textContent = mode==='signup' ? 'সাইনআপ করুন' : 'লগইন করুন';
+  document.getElementById('bonusNote').style.display = mode==='signup' ? 'block' : 'none';
+  document.getElementById('authMsg').textContent = '';
 }
 
-function pickQuestionsForQuiz(quizIndex){
-  // deterministic-ish but randomized per session: just shuffle full bank, slice
-  const shuffled = shuffle(QUESTION_BANK);
-  return shuffled.slice(0, QUESTIONS_PER_QUIZ);
+function showAuthMsg(text, type){
+  const el = document.getElementById('authMsg');
+  el.textContent = text;
+  el.className = 'authMsg ' + type;
 }
 
-/* ---------------- AUTH UI ---------------- */
-let mode = "login"; // or "signup"
-const authTitle = document.getElementById("authTitle");
-const authSub = document.getElementById("authSub");
-const nameField = document.getElementById("nameField");
-const toggleRow = document.getElementById("toggleRow");
-const toggleLink = document.getElementById("toggleLink");
-const bonusNote = document.getElementById("bonusNote");
-const authSubmit = document.getElementById("authSubmit");
-const authError = document.getElementById("authError");
+function handleAuth(){
+  const phone = document.getElementById('phoneInput').value.trim();
+  const pass = document.getElementById('passInput').value.trim();
 
-function renderAuthMode(){
-  authError.textContent = "";
-  if(mode === "login"){
-    authTitle.textContent = "Welcome back";
-    authSub.textContent = "Log in with your phone number to keep earning.";
-    nameField.style.display = "none";
-    bonusNote.style.display = "none";
-    authSubmit.textContent = "Log In";
-    toggleRow.innerHTML = 'New here? <a id="toggleLink">Create an account</a>';
-  } else {
-    authTitle.textContent = "Create your account";
-    authSub.textContent = "Sign up in seconds and start earning today.";
-    nameField.style.display = "block";
-    bonusNote.style.display = "block";
-    authSubmit.textContent = "Sign Up";
-    toggleRow.innerHTML = 'Already have an account? <a id="toggleLink">Log in</a>';
-  }
-  document.getElementById("toggleLink").addEventListener("click", ()=>{
-    mode = mode === "login" ? "signup" : "login";
-    renderAuthMode();
-  });
-}
-renderAuthMode();
-
-authSubmit.addEventListener("click", ()=>{
-  const phone = document.getElementById("phoneInput").value.trim();
-  const pass = document.getElementById("passInput").value;
-  const name = document.getElementById("nameInput").value.trim();
-
-  if(!phone || phone.length < 6){ authError.textContent = "Enter a valid phone number."; return; }
-  if(!pass || pass.length < 4){ authError.textContent = "Password must be at least 4 characters."; return; }
-
-  const users = getUsers();
-
-  if(mode === "signup"){
-    if(users[phone]){ authError.textContent = "An account with this number already exists."; return; }
-    if(!name){ authError.textContent = "Please enter your name."; return; }
-    users[phone] = {
-      name, phone, password: pass,
-      balance: SIGNUP_BONUS,
-      completedQuizzes: [],
-      history: [{type:"Signup bonus", amount: SIGNUP_BONUS, ts: Date.now()}]
-    };
-    saveUsers(users);
-    loginAs(phone);
-  } else {
-    const u = users[phone];
-    if(!u || u.password !== pass){ authError.textContent = "Incorrect phone number or password."; return; }
-    loginAs(phone);
-  }
-});
-
-function loginAs(phone){
-  const users = getUsers();
-  currentUser = users[phone];
-  localStorage.setItem("quizcash_session", phone);
-  showDashboard();
-}
-
-/* ---------------- DASHBOARD ---------------- */
-const authScreen = document.getElementById("authScreen");
-const dashScreen = document.getElementById("dashScreen");
-const playScreen = document.getElementById("playScreen");
-
-function showDashboard(){
-  authScreen.style.display = "none";
-  dashScreen.classList.add("active");
-  playScreen.classList.remove("active");
-  document.getElementById("dashName").textContent = currentUser.name;
-  document.getElementById("dashPhone").textContent = currentUser.phone;
-  renderBalance();
-  renderQuizRail();
-  renderHistory();
-}
-
-document.getElementById("closeTier").addEventListener("click", ()=>{
-  document.getElementById("tierModal").classList.remove("active");
-});
-
-document.addEventListener("dblclick", ()=>{
-  if(currentUser){
-    document.getElementById("tierModal").classList.add("active");
-  }
-});
-
-function renderBalance(){
-  document.getElementById("balanceAmt").innerHTML = `৳${currentUser.balance}<span>BDT</span>`;
-}
-
-function renderQuizRail(){
-  const rail = document.getElementById("quizRail");
-  rail.innerHTML = "";
-  for(let i=0;i<QUIZ_COUNT;i++){
-    const done = currentUser.completedQuizzes.includes(i);
-    const card = document.createElement("div");
-    card.className = "quiz-card" + (done ? " done" : "");
-    card.innerHTML = `
-      <div class="glow"></div>
-      <div class="qnum">${done ? "Completed" : "Quiz " + (i+1)}</div>
-      <h3>Quiz ${i+1}</h3>
-      <p>${QUESTIONS_PER_QUIZ} quick questions · general knowledge</p>
-      <div class="reward">+${REWARD_PER_QUIZ} BDT reward</div>
-      <div class="start-pill">${done ? "✓ Reward claimed" : "Start quiz →"}</div>
-    `;
-    if(!done){
-      card.addEventListener("click", ()=> startQuiz(i));
-    }
-    rail.appendChild(card);
-  }
-}
-
-function renderHistory(){
-  const box = document.getElementById("historyBox");
-  const hist = currentUser.history || [];
-  if(hist.length === 0){
-    box.innerHTML = '<div class="empty-hint">No activity yet — finish a quiz to see it here.</div>';
+  if(!/^01[0-9]{9}$/.test(phone)){
+    showAuthMsg('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন', 'error');
     return;
   }
-  box.innerHTML = [...hist].reverse().map(h => `
-    <div class="history-row">
-      <span>${h.type}</span>
-      <span class="h-plus" style="${h.amount < 0 ? 'color:#ff6b6b' : ''}">${h.amount < 0 ? '' : '+'}${h.amount} BDT</span>
-    </div>
-  `).join("");
+  if(pass.length < 4){
+    showAuthMsg('পাসওয়ার্ড কমপক্ষে ৪ অক্ষরের হতে হবে', 'error');
+    return;
+  }
+
+  if(authMode === 'signup'){
+    const name = document.getElementById('nameInput').value.trim();
+    if(!name){ showAuthMsg('নাম লিখুন', 'error'); return; }
+    if(users[phone]){ showAuthMsg('এই নম্বরে একটি অ্যাকাউন্ট আছে, লগইন করুন', 'error'); return; }
+    users[phone] = {
+      name: name,
+      password: pass,
+      balance: 100,
+      completed: new Array(totalQuizzes).fill(false)
+    };
+    showAuthMsg('অ্যাকাউন্ট তৈরি হয়েছে! ১০০ ৳ বোনাস যোগ হয়েছে 🎉', 'success');
+    setTimeout(()=>loginUser(phone), 600);
+  } else {
+    const u = users[phone];
+    if(!u || u.password !== pass){
+      showAuthMsg('নম্বর বা পাসওয়ার্ড ভুল হয়েছে', 'error');
+      return;
+    }
+    loginUser(phone);
+  }
 }
 
-document.getElementById("logoutBtn").addEventListener("click", ()=>{
-  localStorage.removeItem("quizcash_session");
-  currentUser = null;
-  dashScreen.classList.remove("active");
-  playScreen.classList.remove("active");
-  authScreen.style.display = "flex";
-  document.getElementById("phoneInput").value = "";
-  document.getElementById("passInput").value = "";
-});
+function loginUser(phone){
+  currentUser = phone;
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  renderApp();
+}
 
-/* ---------------- QUIZ PLAY ---------------- */
-function startQuiz(index){
+/* ---------- App rendering ---------- */
+function renderApp(){
+  const u = users[currentUser];
+  document.getElementById('appUserName').textContent = u.name;
+  document.getElementById('balanceDisplay').textContent = u.balance;
+
+  const grid = document.getElementById('quizGrid');
+  grid.innerHTML = '';
+  for(let i=0;i<totalQuizzes;i++){
+    const done = u.completed[i];
+    const card = document.createElement('div');
+    card.className = 'quizCard' + (done ? ' done' : '');
+    card.style.animationDelay = (i*0.05)+'s';
+    card.onclick = ()=>openQuiz(i);
+    card.innerHTML = `
+      <div class="qNum">${i+1}</div>
+      <div class="qLabel">কুইজ ${i+1}</div>
+      <div class="qReward">${done ? 'সম্পন্ন' : '+১৫০ ৳'}</div>
+    `;
+    grid.appendChild(card);
+  }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ---------- Quiz logic ---------- */
+function getRandomQuestions(){
+  const pool = [...questionPool];
+  const picked = [];
+  for(let i=0;i<3;i++){
+    const idx = Math.floor(Math.random()*pool.length);
+    picked.push(pool[idx]);
+    pool.splice(idx,1);
+  }
+  return picked;
+}
+
+function openQuiz(index){
   activeQuizIndex = index;
-  activeQuestions = pickQuestionsForQuiz(index);
-  activeIdx = 0;
-  activeScore = 0;
-  dashScreen.classList.remove("active");
-  playScreen.classList.add("active");
-  renderProgress();
+  activeQuestions = getRandomQuestions();
+  currentQIdx = 0;
+  score = 0;
+  document.getElementById('quizModalTitle').textContent = 'কুইজ ' + (index+1);
+  document.getElementById('quizModal').style.display = 'flex';
   renderQuestion();
 }
 
-function renderProgress(){
-  const wrap = document.getElementById("quizProgress");
-  wrap.innerHTML = "";
-  for(let i=0;i<QUESTIONS_PER_QUIZ;i++){
-    const seg = document.createElement("div");
-    seg.className = "seg" + (i < activeIdx ? " fill" : "");
-    wrap.appendChild(seg);
-  }
-}
-
 function renderQuestion(){
-  const area = document.getElementById("playArea");
-  if(activeIdx >= QUESTIONS_PER_QUIZ){
-    return finishQuiz();
+  const total = activeQuestions.length;
+  document.getElementById('progressFill').style.width = ((currentQIdx)/total*100)+'%';
+
+  if(currentQIdx >= total){
+    finishQuiz();
+    return;
   }
-  const item = activeQuestions[activeIdx];
-  const letters = ["A","B","C","D"];
-  area.innerHTML = `
-    <div class="question-box">
-      <div class="qcount">Question ${activeIdx+1} of ${QUESTIONS_PER_QUIZ}</div>
-      <h2>${item.q}</h2>
-    </div>
-    <div class="options" id="optionsWrap">
-      ${item.opts.map((o,i)=>`
-        <button class="option-btn" data-idx="${i}">
-          <span class="opt-letter">${letters[i]}</span><span>${o}</span>
-        </button>`).join("")}
-    </div>
+  const q = activeQuestions[currentQIdx];
+  const body = document.getElementById('quizBody');
+  body.innerHTML = `
+    <div class="qText">প্রশ্ন ${currentQIdx+1}/${total}: ${q.q}</div>
+    <div id="optsWrap"></div>
   `;
-  document.querySelectorAll(".option-btn").forEach(btn=>{
-    btn.addEventListener("click", onAnswer);
+  const wrap = document.getElementById('optsWrap');
+  q.opts.forEach((opt,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'optBtn';
+    btn.textContent = `${i+1}. ${opt}`;
+    btn.onclick = ()=>answerQuestion(i, q.a, btn);
+    wrap.appendChild(btn);
   });
 }
 
-function onAnswer(e){
-  const btn = e.currentTarget;
-  const chosen = parseInt(btn.dataset.idx);
-  const item = activeQuestions[activeIdx];
-  const allBtns = document.querySelectorAll(".option-btn");
-  allBtns.forEach(b => b.classList.add("disabled"));
-
-  if(chosen === item.a){
-    btn.classList.add("correct");
-    activeScore++;
-  } else {
-    btn.classList.add("wrong");
-    allBtns[item.a].classList.add("correct");
-  }
+function answerQuestion(selected, correctIdx, btnEl){
+  const allBtns = document.querySelectorAll('#optsWrap .optBtn');
+  allBtns.forEach((b,i)=>{
+    b.disabled = true;
+    if(i === correctIdx) b.classList.add('correct');
+    else if(i === selected) b.classList.add('wrong');
+  });
+  if(selected === correctIdx) score++;
 
   setTimeout(()=>{
-    activeIdx++;
-    renderProgress();
+    currentQIdx++;
     renderQuestion();
-  }, 750);
+  }, 800);
 }
 
 function finishQuiz(){
-  const area = document.getElementById("playArea");
-  const earned = REWARD_PER_QUIZ;
-  currentUser.balance += earned;
-  currentUser.completedQuizzes.push(activeQuizIndex);
-  currentUser.history.push({type:`Quiz ${activeQuizIndex+1} completed`, amount: earned, ts: Date.now()});
-  persistCurrentUser();
+  document.getElementById('progressFill').style.width = '100%';
+  const u = users[currentUser];
+  const alreadyDone = u.completed[activeQuizIndex];
+  let earned = 0;
+  if(!alreadyDone){
+    earned = 150;
+    u.balance += 150;
+    u.completed[activeQuizIndex] = true;
+  }
 
-  area.innerHTML = `
-    <div class="result-box">
-      <div class="emoji">${activeScore >= 4 ? "🏆" : activeScore >= 2 ? "🎉" : "👍"}</div>
-      <h2>Quiz complete!</h2>
-      <p>You scored ${activeScore} out of ${QUESTIONS_PER_QUIZ} correct.</p>
-      <div class="earned">+${earned} <span>BDT</span></div>
-      <button class="btn btn-primary" id="returnDash">Back to dashboard</button>
+  const body = document.getElementById('quizBody');
+  body.innerHTML = `
+    <div class="quizResult">
+      <div class="big">${score === activeQuestions.length ? '🏆' : '✅'}</div>
+      <h3>কুইজ সম্পন্ন!</h3>
+      <p>আপনি ${activeQuestions.length}টির মধ্যে ${score}টি সঠিক উত্তর দিয়েছেন</p>
+      ${earned > 0
+        ? `<div class="rewardTag">+ ${earned} ৳ পেয়েছেন!</div>`
+        : `<div class="rewardTag" style="background:#3a3d39;color:#aaa;box-shadow:none;">ইতিমধ্যে সম্পন্ন</div>`}
+      <br><br>
+      <button class="primaryBtn" onclick="closeModal('quizModal'); renderApp();">ঠিক আছে</button>
     </div>
   `;
-  document.getElementById("returnDash").addEventListener("click", ()=>{
-    playScreen.classList.remove("active");
-    dashScreen.classList.add("active");
-    renderBalance();
-    renderQuizRail();
-    renderHistory();
-  });
+  renderApp();
+  if(earned>0) showToast('🎉 ব্যালেন্সে ১৫০ ৳ যোগ হয়েছে!');
 }
 
-document.getElementById("backFromPlay").addEventListener("click", ()=>{
-  playScreen.classList.remove("active");
-  dashScreen.classList.add("active");
-});
-
-function persistCurrentUser(){
-  const users = getUsers();
-  users[currentUser.phone] = currentUser;
-  saveUsers(users);
+/* ---------- Cashout ---------- */
+function openCashout(){
+  cashoutMethod = null;
+  document.getElementById('bkashBtn').classList.remove('selected');
+  document.getElementById('nagadBtn').classList.remove('selected');
+  document.getElementById('cashoutNumber').value = '';
+  document.getElementById('cashoutMsg').textContent = '';
+  document.getElementById('cashoutModal').style.display = 'flex';
 }
 
-/* ---------------- CASHOUT ---------------- */
-const cashoutModal = document.getElementById("cashoutModal");
-const doneModal = document.getElementById("doneModal");
+function selectMethod(method){
+  cashoutMethod = method;
+  document.getElementById('bkashBtn').classList.toggle('selected', method==='bkash');
+  document.getElementById('nagadBtn').classList.toggle('selected', method==='nagad');
+}
 
-document.getElementById("cashoutBtn").addEventListener("click", ()=>{
-  document.getElementById("cashNumber").value = "";
-  document.getElementById("cashMethod").value = "";
-  document.getElementById("cashError").textContent = "";
-  cashoutModal.classList.add("active");
-});
-document.getElementById("closeCashout").addEventListener("click", ()=>{
-  cashoutModal.classList.remove("active");
-});
-
-document.getElementById("submitCashout").addEventListener("click", ()=>{
-  const num = document.getElementById("cashNumber").value.trim();
-  const method = document.getElementById("cashMethod").value.trim();
-  const err = document.getElementById("cashError");
-  if(!num || num.length < 6){ err.textContent = "Enter a valid mobile number."; return; }
-  if(!method){ err.textContent = "Enter a cashout method (e.g. bKash)."; return; }
-
-  const cashedAmount = currentUser.balance;
-  currentUser.history.push({type:`Cashout via ${method} (${num})`, amount: -cashedAmount, ts: Date.now()});
-  currentUser.balance = 0;
-  persistCurrentUser();
-
-  cashoutModal.classList.remove("active");
-  document.getElementById("doneText").textContent =
-    `Your request to send ৳${cashedAmount} to ${num} via ${method} has been received. Your balance is now ৳0.`;
-  doneModal.classList.add("active");
-});
-
-document.getElementById("closeDone").addEventListener("click", ()=>{
-  doneModal.classList.remove("active");
-  renderBalance();
-  renderHistory();
-});
-
-/* ---------------- SESSION RESTORE ---------------- */
-window.addEventListener("load", ()=>{
-  const phone = localStorage.getItem("quizcash_session");
-  if(phone){
-    const users = getUsers();
-    if(users[phone]){
-      currentUser = users[phone];
-      showDashboard();
-    }
+function submitCashout(){
+  const num = document.getElementById('cashoutNumber').value.trim();
+  const msg = document.getElementById('cashoutMsg');
+  if(!/^01[0-9]{9}$/.test(num)){
+    msg.className = 'authMsg error';
+    msg.textContent = 'সঠিক নম্বর দিন';
+    return;
   }
+  if(!cashoutMethod){
+    msg.className = 'authMsg error';
+    msg.textContent = 'একটি মেথড সিলেক্ট করুন';
+    return;
+  }
+  msg.className = 'authMsg success';
+  msg.textContent = 'রিকোয়েস্ট গ্রহণ করা হয়েছে। লেভেল ২ আপগ্রেড করতে সাপোর্টে যোগাযোগ করুন।';
+}
+
+/* ---------- Modal helpers ---------- */
+function closeModal(id){
+  document.getElementById(id).style.display = 'none';
+}
+document.querySelectorAll('.modalOverlay').forEach(ov=>{
+  ov.addEventListener('click', e=>{
+    if(e.target === ov) ov.style.display = 'none';
+  });
 });
 </script>
 </body>
